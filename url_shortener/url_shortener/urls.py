@@ -16,7 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.contrib.auth import views as auth_views
+from .views import shorten_url_api, redirect_to_original, url_stats, home, register_view, login_view, logout_view
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', home, name='home'),
+    path('shorten/', shorten_url_api, name='shorten_url_api'),
+    path('stats/<str:short_code>/', url_stats, name='url_stats'),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('register/', register_view, name='register'),
+    path('<str:short_code>/', redirect_to_original, name='redirect_to_original'),
 ]
