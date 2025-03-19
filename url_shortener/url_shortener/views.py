@@ -12,11 +12,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 
 
-
 def login_view(request):
     if request.user.is_authenticated:
         next_url = request.GET.get('next', 'home')
-        if next_url == 'login': 
+        if next_url == 'login':
             next_url = 'home'
         return redirect(next_url)
 
@@ -52,6 +51,8 @@ def register_view(request):
     return render(request, 'register.html', {'form': form})
 
 # Генерация токена
+
+
 def generate_short_code(length=6):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choices(characters, k=length))
@@ -74,10 +75,13 @@ def home(request):
 
             short_url = request.build_absolute_uri(f'/{short_code}')
 
-    urls = ShortenedURL.objects.filter(user=request.user).order_by('-created_at')
+    urls = ShortenedURL.objects.filter(
+        user=request.user).order_by('-created_at')
     return render(request, 'home.html', {'short_url': short_url, 'urls': urls})
 
-#API  через JSON-запрос
+# API  через JSON-запрос
+
+
 @csrf_exempt
 def shorten_url_api(request):
     if request.method == "POST":
@@ -112,6 +116,7 @@ def redirect_to_original(request, short_code):
         return redirect(shortened_url.original_url)
     except ShortenedURL.DoesNotExist:
         raise Http404("Shortened URL not found.")
+
 
 def url_stats(request, short_code):
     url_entry = get_object_or_404(ShortenedURL, short_code=short_code)
