@@ -1,0 +1,10 @@
+asgiref==3.8.1
+build==1.2.2.post1
+click==8.1.8
+Django==5.1.7
+packaging==24.2
+pip-tools==7.4.1
+pyproject_hooks==1.2.0
+setuptools==76.1.0
+sqlparse==0.5.3
+wheel==0.45.1
