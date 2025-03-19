@@ -15,7 +15,7 @@ from django.http import Http404
 def login_view(request):
     if request.user.is_authenticated:
         next_url = request.GET.get('next', 'home')
-        if next_url == 'login': 
+        if next_url == 'login':
             next_url = 'home'
         return redirect(next_url)
 
@@ -51,6 +51,8 @@ def register_view(request):
     return render(request, 'register.html', {'form': form})
 
 # Генерация токена
+
+
 def generate_short_code(length=6):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choices(characters, k=length))
@@ -63,20 +65,23 @@ def home(request):
         original_url = request.POST.get('original_url')
         if original_url:
             existing_url = ShortenedURL.objects.filter(
-                original_url=original_url).first()
+                original_url=original_url, user=request.user).first()
             if existing_url:
                 short_code = existing_url.short_code
             else:
                 short_code = ShortenedURL.generate_unique_code()
                 existing_url = ShortenedURL.objects.create(
-                    original_url=original_url, short_code=short_code)
+                    original_url=original_url, short_code=short_code, user=request.user)
 
             short_url = request.build_absolute_uri(f'/{short_code}')
 
-    urls = ShortenedURL.objects.all().order_by('-created_at')
+    urls = ShortenedURL.objects.filter(
+        user=request.user).order_by('-created_at')
     return render(request, 'home.html', {'short_url': short_url, 'urls': urls})
 
-#API  через JSON-запрос
+# API  через JSON-запрос
+
+
 @csrf_exempt
 def shorten_url_api(request):
     if request.method == "POST":
@@ -87,7 +92,7 @@ def shorten_url_api(request):
                 return JsonResponse({"error": "URL не указан"}, status=400)
 
             short_url_obj, created = ShortenedURL.objects.get_or_create(
-                original_url=original_url)
+                original_url=original_url, user=request.user)
             if created:
                 short_url_obj.short_code = generate_short_code()
                 short_url_obj.save()
@@ -107,6 +112,7 @@ def shorten_url_api(request):
 def redirect_to_original(request, short_code):
     try:
         shortened_url = ShortenedURL.objects.get(short_code=short_code)
+        shortened_url.increment_clicks()
         return redirect(shortened_url.original_url)
     except ShortenedURL.DoesNotExist:
         raise Http404("Shortened URL not found.")
